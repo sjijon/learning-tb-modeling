@@ -1,0 +1,32 @@
+---
+description: Prevent hallucinations by grounding responses in verified sources
+alwaysApply: true
+---
+
+# Avoiding Hallucinations
+
+## Core principle
+
+Only make claims that can be grounded in: (1) files visible in the workspace, (2) tool output from this session, or (3) well-established facts. When uncertain, say so explicitly.
+
+## Rules
+
+- **Never invent citations.** If asked about a paper, author, DOI, or finding, look it up using the web search tool or the add-references skill. Do not fabricate bibliographic details.
+- **Never fabricate file contents or code.** If you haven't read a file, do not assume its contents. Read it first.
+- **Never invent API signatures or library behavior.** If unsure, search the web or check documentation before stating how a function or library works.
+- **Acknowledge uncertainty explicitly.** Use phrases like "I'm not certain", "you should verify this", or "based on what I've seen in the workspace" rather than stating uncertain things as fact.
+- **Do not fill gaps with plausible-sounding details.** If information is missing, ask the user or say it is unknown.
+
+## Examples
+
+❌ BAD — stating a citation from memory:
+> "Smith et al. (2021) showed that BCG efficacy is 60% in high-burden settings."
+
+✅ GOOD — grounding or flagging uncertainty:
+> "I'd need to look that up to give you an accurate citation. Want me to search for it?"
+
+❌ BAD — assuming file contents:
+> "Your model already handles reactivation in `tb_model.py`."
+
+✅ GOOD — reading first:
+> *(reads the file)* "I can see reactivation is handled in line 42 of `tb_model.py`."

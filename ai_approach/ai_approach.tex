@@ -1,0 +1,587 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[colorlinks=true, linkcolor=MidnightBlue, citecolor=MidnightBlue, urlcolor=MidnightBlue]{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{fancyvrb}
+\usepackage{mdframed}
+
+% Style for quoted prompts
+\newmdenv[
+  backgroundcolor=gray!10,
+  linecolor=gray!40,
+  linewidth=0.6pt,
+  innerleftmargin=10pt,
+  innerrightmargin=10pt,
+  innertopmargin=6pt,
+  innerbottommargin=6pt,
+  skipabove=6pt,
+  skipbelow=6pt
+]{promptbox}
+
+\title{AI-Assisted Project Development:\\
+  Documenting the Use of AI Agents in the\\ TB Infectious Disease Modeling Project}
+\author{}
+\date{March 2026}
+
+\begin{document}
+\maketitle
+\setcounter{tocdepth}{2}
+\tableofcontents
+\newpage
+
+% -----------------------------------------------------------------------
+\section{Overview}
+% -----------------------------------------------------------------------
+
+This document describes how AI agents were used throughout the \textit{TB Infectious Disease Modeling} project. The project's primary aim was to learn TB epidemiology and mathematical modeling from scratch, build a working compartmental model in Python, and simultaneously develop skills in using AI agents to navigate a new technical subject and produce a structured portfolio.
+
+All AI assistance was provided through \textbf{Cursor}, an AI-powered IDE, using a combination of:
+\begin{itemize}[noitemsep]
+  \item \textbf{Plan mode} -- to collaboratively design the project structure before any code was written.
+  \item \textbf{Agent mode} -- to execute plans, write code, LaTeX, and documentation autonomously.
+  \item \textbf{Cursor Skills} -- small reusable instruction files that teach the agent domain-specific workflows.
+  \item \textbf{Cursor Context files} -- Markdown files that consolidate all relevant context for a component, attached to conversations to give the agent an accurate, up-to-date picture of the project without reading every file individually.
+\end{itemize}
+
+The full conversation history is stored in two agent transcripts within the project's \texttt{.cursor/} directory:
+\begin{itemize}[noitemsep]
+  \item \texttt{196c0a38-2551-4c17-9159-dae423d48a45} -- main modeling project conversation.
+  \item \texttt{b0a3a5d5-9dff-4db2-861e-9fc242971a2e} -- tooling and skills conversation.
+\end{itemize}
+
+% -----------------------------------------------------------------------
+\section{Planning the project}
+% -----------------------------------------------------------------------
+
+\subsection{Initial prompt}
+
+The project was initiated entirely via a natural-language prompt describing goals, not a technical specification:
+
+\begin{promptbox}
+\textit{``I want to apply to research scientist positions for infectious disease modeling of TB, but I have never worked on TB. I want to use this project to 1. learn about TB, 2. learn about modeling approaches, 3. build a toy model in python and/or R, and 4. to gain skills using AI agents to approach a new subject and build a project.''}
+\end{promptbox}
+
+\noindent From this prompt, the agent automatically switched to \textbf{Plan mode} and:
+\begin{enumerate}[noitemsep]
+  \item Searched current TB modeling literature to identify standard modeling approaches (SEIR, SEILTR, SEIRS, parameter estimation methods).
+  \item Searched for TB natural history parameters (R\textsubscript{0}, latency duration, case fatality rates).
+  \item Proposed a four-phase project structure with deliverables and rationale.
+  \item Presented the plan for user confirmation before writing any files.
+\end{enumerate}
+
+\subsection{Plan refinement prompts}
+
+Once the plan was proposed, two refinement prompts shaped the final structure:
+
+\begin{promptbox}
+\textit{``Write all the TB history and literature review in a tex file. Use ipynb only for the toy model.''}
+\end{promptbox}
+
+\noindent This changed Phases 1--2 from Jupyter notebooks to a single LaTeX document, resulting in the current three-layer structure: \LaTeX{} for theory, notebooks for computation, \texttt{src/} for reusable code.
+
+The confirmed plan was saved to:
+\begin{center}
+\texttt{.cursor/plans/tb\_modeling\_learning\_project\_1d0fe19d.plan.md}
+\end{center}
+
+\subsection{Plan contents}
+
+The plan specified five sequential to-dos, all tracked in the plan file's frontmatter:
+
+\begin{longtable}{@{}p{0.4cm}p{4.8cm}p{8.1cm}@{}}
+\toprule
+\# & To-do & Deliverable \\
+\midrule
+\endfirsthead
+\toprule
+\# & To-do & Deliverable \\
+\midrule
+\endhead
+1 & Phase 1: Literature review & \texttt{tb\_overview/modeling\_tb.tex} + \texttt{references.bib} \\
+2 & Phase 2: Build \texttt{src/} package & \texttt{tb\_toy\_model/src/model.py}, \texttt{parameters.py}, \texttt{plotting.py} \\
+3 & Phase 3a: Toy model notebook & \texttt{tb\_toy\_model/notebooks/01\_tb\_model.ipynb} \\
+4 & Phase 3b: Sensitivity notebook & \texttt{tb\_toy\_model/notebooks/02\_sensitivity\_analysis.ipynb} \\
+5 & Phase 4: Polish & \texttt{requirements.txt}, end-to-end run check \\
+\bottomrule
+\end{longtable}
+
+% -----------------------------------------------------------------------
+\section{Cursor Features Used}
+% -----------------------------------------------------------------------
+
+% -----------------------------------------------------------------------
+\subsection{Agents used}
+% -----------------------------------------------------------------------
+
+\subsubsection{Plan mode agent}
+
+Cursor's Plan mode runs a read-only agent that gathers information and proposes an approach without making any file changes. It was used for all design decisions. Key behaviors observed:
+\begin{itemize}[noitemsep]
+  \item Issued parallel web searches to investigate TB modeling literature and implementation references simultaneously.
+  \item Used \texttt{AskQuestion} (structured multiple-choice) to prompt for user clarification.
+  \item Presented a structured plan via \texttt{CreatePlan} before switching to execution.
+\end{itemize}
+
+\subsubsection{Agent mode agent}
+
+After plan confirmation, agent mode executed each to-do sequentially. Behaviors observed:
+\begin{itemize}[noitemsep]
+  \item Searched for and verified bibliographic details (DOIs, volumes, page numbers) for all six key references before writing the \texttt{.bib} file.
+  \item Wrote the LaTeX literature review including a TikZ compartmental flow diagram and a parameter table.
+  \item Built the \texttt{src/} Python package with explicit, human-readable variable names following stated coding rules.
+  \item Created Jupyter notebooks by building an empty \texttt{.ipynb} skeleton first, then populating cells with the \texttt{EditNotebook} tool.
+  \item Marked each to-do as \texttt{completed} in the plan file immediately after finishing it.
+  \item Read lints on modified files before finishing.
+\end{itemize}
+
+\subsubsection{Tooling agent (second conversation)}
+
+A separate agent conversation handled project tooling and iterative LaTeX refinements:
+\begin{itemize}[noitemsep]
+  \item Created the \texttt{add-references} skill (see Section~\ref{sec:skills}).
+  \item Created the \texttt{compile-tex-after-save} skill.
+  \item Renamed the main \LaTeX{} file from \texttt{tb\_background.tex} to \texttt{modeling\_tb.tex} when requested.
+  \item Applied a color scheme (MidnightBlue for all links and citations) to the literature review.
+  \item Compiled \texttt{modeling\_tb.tex} to PDF using \texttt{latexmk}.
+\end{itemize}
+
+% -----------------------------------------------------------------------
+\subsection{Cursor Skills created}
+\label{sec:skills}
+% -----------------------------------------------------------------------
+
+Cursor Skills are Markdown files stored in \texttt{.cursor/skills/<name>/SKILL.md}. The agent reads the relevant skill file before performing the task. Two skills were created for this project.
+
+\subsubsection{\texttt{add-references}}
+
+\textbf{Path:} \texttt{.cursor/skills/add-references/SKILL.md}
+
+\textbf{Purpose:} Look up academic references online and produce complete BibTeX entries with DOIs.
+
+\textbf{Trigger:} User asks to add a reference, cite a paper, find a DOI, or build a \texttt{references.bib} file.
+
+\textbf{Workflow defined in the skill:}
+\begin{enumerate}[noitemsep]
+  \item Identify the paper from user input.
+  \item Search for the DOI with \texttt{WebSearch}.
+  \item Fetch \texttt{https://doi.org/<doi>} with \texttt{WebFetch} to extract canonical metadata.
+  \item Build a complete BibTeX entry (\texttt{@article}, \texttt{@book}, etc.) with all standard fields.
+  \item Append to \texttt{references.bib}, checking for duplicates first.
+\end{enumerate}
+
+\textbf{Prompt that created it:}
+\begin{promptbox}
+\textit{``add a skill to add full references including doi''}
+\end{promptbox}
+
+\subsubsection{\texttt{compile-tex-after-save}}
+
+\textbf{Path:} \texttt{.cursor/skills/compile-tex-after-save/SKILL.md}
+
+\textbf{Purpose:} Compile LaTeX files to PDF using \texttt{latexmk} when the user confirms changes are saved.
+
+\textbf{Trigger:} User says changes are saved/accepted, or asks to compile / build PDF.
+
+\textbf{Default target:} \texttt{tb\_overview/modeling\_tb.tex}
+
+\textbf{Compile command:} \verb|latexmk -pdf -interaction=nonstopmode -file-line-error <main>.tex|
+
+\textbf{Prompt that created it:}
+\begin{promptbox}
+\textit{``add skill to compile the tex files after accepting changes''}
+\end{promptbox}
+
+% -----------------------------------------------------------------------
+\subsection{Cursor Context files}
+\label{sec:contexts}
+% -----------------------------------------------------------------------
+
+Cursor Context files are Markdown documents stored in \texttt{.cursor/context/}. Unlike Skills (which encode a reusable workflow) and Plans (which track to-dos), context files capture the current state of a project component in a single readable file. When attached to a conversation with \texttt{@context\_file.md}, they give the agent an accurate, up-to-date picture of the relevant code, structure, and decisions without requiring it to open and read every individual source file.
+
+\subsubsection{Why context files were introduced}
+
+As the project grew across multiple folders (\texttt{tb\_overview/}, \texttt{tb\_toy\_model/}, \texttt{ai\_approach/}), individual conversations needed to reference details spread across many files. Attaching a single context file replaced the need to re-read the same source files at the start of every new session and reduced the risk of the agent acting on stale information (e.g., old file names, superseded parameter values).
+
+\subsubsection{Context files in this project}
+
+Four context files were created, each covering one component:
+
+\begin{longtable}{@{}p{5.2cm}p{8.1cm}@{}}
+\toprule
+File & Covers \\
+\midrule
+\endfirsthead
+\toprule
+File & Covers \\
+\midrule
+\endhead
+\texttt{context\_toy\_model.md} & SELT(R) model structure, full ODE system, R0 formula, parameter table with Python field names, \texttt{src/} API, notebook cell outlines, design decisions, setup commands. \\
+\texttt{context\_literature\_review.md} & Purpose and location of \texttt{tb\_overview/modeling\_tb.tex}, section structure, BibTeX entries, LaTeX packages, style conventions, living-document notes. \\
+\texttt{context\_ai\_approach.md} & Document structure of \texttt{ai\_approach.tex} (section list), what is and is not in scope, style conventions, known gaps. \\
+\texttt{context\_consistency.md} & Canonical file tree, cross-reference map between documents, naming conventions, known consistency issues to watch for. \\
+\bottomrule
+\end{longtable}
+
+\subsubsection{What each context file contains}
+
+Each file follows a consistent structure:
+\begin{itemize}[noitemsep]
+  \item \textbf{Purpose} -- one paragraph explaining what the component is for and what it is not.
+  \item \textbf{File locations} -- annotated directory tree for the component.
+  \item \textbf{Content map} -- section-by-section or module-by-module outline of what lives where.
+  \item \textbf{Key details} -- parameter values, API signatures, constraints, or conventions that would otherwise require reading source files.
+  \item \textbf{Design decisions} -- the reasoning behind structural choices, so the agent does not undo them inadvertently.
+  \item \textbf{Related files} -- cross-references to other components.
+\end{itemize}
+
+\subsubsection{Prompt that introduced context files}
+
+Context files were introduced organically as the project grew. The first was created with:
+
+\begin{promptbox}
+\textit{``create a context file in @.cursor/context/ containing all the context we have for the toy model''}
+\end{promptbox}
+
+\noindent The agent read all relevant source files (\texttt{src/model.py}, \texttt{parameters.py}, \texttt{plotting.py}, \texttt{tb\_toy\_model/README.md}, and the notebook cell content) before writing the context file, consolidating them into a single document. Subsequent context files were created following the same pattern for each project component.
+
+% -----------------------------------------------------------------------
+\section{Prompts by project component}
+% -----------------------------------------------------------------------
+
+This section summarizes the user prompts responsible for each component of the project. All prompts are quoted verbatim (with minor spelling preserved).
+
+\subsection{Literature review (\texttt{tb\_overview/})}
+
+\begin{longtable}{@{}p{6cm}p{7.3cm}@{}}
+\toprule
+Prompt & Effect \\
+\midrule
+\endfirsthead
+\toprule
+Prompt & Effect \\
+\midrule
+\endhead
+\textit{``I want to apply to research scientist positions for infectious disease modeling of TB\ldots''} & Triggered plan creation; agent researched TB modeling literature and proposed the full project structure. \\
+\textit{``Write all the TB history and literature review in a tex file. Use ipynb only for the toy model.''} & Changed Phase 1--2 deliverables from Jupyter notebooks to a single LaTeX document with BibTeX. \\
+\textit{``[plan confirmed -- begin implementation]''} & Agent wrote \texttt{modeling\_tb.tex} with TikZ flow diagram, model spec, parameter table, and \texttt{references.bib} with six verified citations. \\
+\textit{``use midnightblue to color all links and refs''} & Agent added \texttt{xcolor} and \texttt{hyperref} packages with MidnightBlue color scheme applied to all internal links and citations. \\
+\textit{``compile @modeling\_tb.tex''} & Skill triggered; agent ran \texttt{latexmk} and produced \texttt{modeling\_tb.pdf}. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Model architecture (\texttt{tb\_toy\_model/src/})}
+
+\begin{longtable}{@{}p{6cm}p{7.3cm}@{}}
+\toprule
+Prompt & Effect \\
+\midrule
+\endfirsthead
+\toprule
+Prompt & Effect \\
+\midrule
+\endhead
+\textit{``[plan confirmed -- begin implementation]''} & Agent designed the SELT(R) compartmental model (Susceptible, Early Latent, Late Latent, Infectious, Treated, Recovered) as the core model structure. \\
+& Wrote \texttt{parameters.py} (dataclass with literature-sourced defaults), \texttt{model.py} (ODE system, solver wrapper, R\textsubscript{0} function), and \texttt{plotting.py} (time series, incidence curve, tornado plot helpers). \\
+\bottomrule
+\end{longtable}
+
+\noindent The model architecture was derived from the plan, which itself emerged from the agent's literature search in response to the initial prompt. No explicit prompt specified ODE structure or parameter names; these were inferred from TB modeling literature.
+
+\subsection{Code (\texttt{tb\_toy\_model/notebooks/})}
+
+\begin{longtable}{@{}p{6cm}p{7.3cm}@{}}
+\toprule
+Prompt & Effect \\
+\midrule
+\endfirsthead
+\toprule
+Prompt & Effect \\
+\midrule
+\endhead
+\textit{``[plan confirmed -- begin implementation]''} & Agent created \texttt{01\_tb\_model.ipynb}: imports from \texttt{src/}, baseline 100-year simulation, compartment time series, incidence curve, R\textsubscript{0} printout, treatment scenario comparison. \\
+& Agent created \texttt{02\_sensitivity\_analysis.ipynb}: one-at-a-time $\pm$20\% parameter sweeps, R\textsubscript{0} tornado plot, cumulative incidence tornado plot. \\
+\textit{``change name to tb\_models and compile @tb\_background.tex''} & Agent renamed the LaTeX file and recompiled; no notebook changes. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Documentation (\texttt{README.md}, this document)}
+
+\begin{longtable}{@{}p{6cm}p{7.3cm}@{}}
+\toprule
+Prompt & Effect \\
+\midrule
+\endfirsthead
+\toprule
+Prompt & Effect \\
+\midrule
+\endhead
+\textit{``add readme to modeling tb and write down a summary of the plan''} & Agent read the confirmed plan file and wrote \texttt{README.md} with project goals, structure, model description, setup instructions, and design rationale. \\
+\textit{``Add a folder for the ai approach with a .tex documenting the ai use of this project: the skills, building plans, the agents used, and a summary of the prompts required for each part.''} & Agent read both agent transcripts, both skill files, and the plan file, then wrote this document (\texttt{ai\_approach/ai\_approach.tex}). \\
+\bottomrule
+\end{longtable}
+
+% -----------------------------------------------------------------------
+\section{Style instructions}
+% -----------------------------------------------------------------------
+
+This section documents all instructions given to shape the style, organization, and presentation of project documents -- how files are structured, what each document is responsible for, and how individual documents look.
+
+% -----------------------------------------------------------------------
+\subsection{Project organization}
+\label{sec:organization}
+% -----------------------------------------------------------------------
+
+After the initial implementation was complete, a series of prompts refined how the project was organized across files and folders. These instructions were given incrementally -- each one targeted a specific structural concern -- and collectively produced the final layout.
+
+\subsubsection{Separating background writing from computation}
+
+\begin{promptbox}
+\textit{``Write all the TB history and literature review in a tex file. Use ipynb only for the toy model.''}
+\end{promptbox}
+
+\noindent \textbf{Effect:} Established the core organizational principle of the project. Phases 1 and 2, which had originally been planned as Jupyter notebooks, were redirected to a single LaTeX document. This created a clear boundary: \LaTeX{} for narrative scientific writing, notebooks exclusively for computation and visualization.
+
+\subsubsection{Splitting model specification between documents}
+
+\begin{promptbox}
+\textit{``The literature review must contain the modeling approach used in this project, but move all the specifics to the 01\_tb\_model notebook.''}
+\end{promptbox}
+
+\noindent \textbf{Effect:} Divided Section 3 of \texttt{modeling\_tb.tex} into two layers of detail:
+\begin{itemize}[noitemsep]
+  \item \textbf{In the literature review} -- biological rationale for each compartment (what each state variable represents and why it is needed), cross-referencing the notebook for equations.
+  \item \textbf{In the notebook} -- the full ODE system, the $R_0$ formula with derivation notes, and the parameter table with units and literature sources.
+\end{itemize}
+This kept the literature review readable as a standalone scientific document while making the notebook self-contained for computation.
+
+\subsubsection{Splitting the README}
+
+\begin{promptbox}
+\textit{``move the details of the model (lines 36--132) of the readme to a readme inside tb\_toy\_model and add only a short summary of the Modeling in the main README.md''}
+\end{promptbox}
+
+\noindent \textbf{Effect:} The main \texttt{README.md} at the project root was reduced to a high-level overview (goals, project structure, two-sentence model summary, links to sub-folders). A dedicated \texttt{tb\_toy\_model/README.md} was created to hold the full model description, compartment list, flow diagram, notebook descriptions, setup instructions, and design decisions. Each README now has a single audience: the project root README is an entry point; the model README is a reference for anyone working with the code.
+
+\subsubsection{Adding the AI documentation folder}
+
+\begin{promptbox}
+\textit{``Add a folder for the ai approach with a .tex documenting the ai use of this project: the skills, building plans, the agents used, and a summary of the prompts required for each part (literature review, model architecture, code, and documentation).''}
+\end{promptbox}
+
+\noindent \textbf{Effect:} Created \texttt{ai\_approach/ai\_approach.tex} (this document). The agent read both transcript files, both skill SKILL.md files, and the plan file before writing, ensuring the prompts documented here are verbatim from the conversation history.
+
+\subsubsection{Summary: the organizational principles that emerged}
+
+The four instructions above converged on a consistent set of rules for where content lives:
+
+\begin{longtable}{@{}p{4.5cm}p{8.8cm}@{}}
+\toprule
+Location & Content \\
+\midrule
+\endfirsthead
+\toprule
+Location & Content \\
+\midrule
+\endhead
+\texttt{tb\_overview/} & Background science: epidemiology, why this modeling approach, biological rationale for model structure. No equations or parameter values. \\
+\texttt{tb\_toy\_model/notebooks/} & Full model specification (ODEs, $R_0$, parameter table) and all computational results. \\
+\texttt{tb\_toy\_model/src/} & Reusable Python implementation; no narrative text. \\
+\texttt{README.md} (root) & Entry point: goals, folder map, one-paragraph summaries with links. \\
+\texttt{tb\_toy\_model/README.md} & Reference documentation for the model code and notebooks. \\
+\texttt{ai\_approach/} & Meta-documentation: how the project was built using AI agents. \\
+\bottomrule
+\end{longtable}
+
+% -----------------------------------------------------------------------
+\subsection{Document style}
+% -----------------------------------------------------------------------
+
+These instructions defined the visual and formatting conventions applied consistently across all project documents.
+
+\subsubsection{LaTeX: link and citation color}
+
+\begin{promptbox}
+\textit{``use midnightblue to color all links and refs''}
+\end{promptbox}
+
+\noindent \textbf{Effect:} Applied to \texttt{modeling\_tb.tex} and subsequently adopted in \texttt{ai\_approach.tex}. Both documents load \texttt{xcolor} with the \texttt{dvipsnames} option and configure \texttt{hyperref} as follows:
+
+\begin{verbatim}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[colorlinks=true,
+            linkcolor=MidnightBlue,
+            citecolor=MidnightBlue,
+            urlcolor=MidnightBlue]{hyperref}
+\end{verbatim}
+
+\noindent This gives all internal links, citations, and URLs a consistent dark blue color that prints legibly in greyscale.
+
+\subsubsection{LaTeX: document class and margins}
+
+No explicit prompt was given; the agent chose these defaults and they were accepted without change:
+\begin{itemize}[noitemsep]
+  \item \verb|\documentclass[11pt]{article}| -- 11pt font, standard article class.
+  \item \verb|\usepackage[margin=1in]{geometry}| -- 1-inch margins on all sides.
+  \item \texttt{natbib} + \texttt{plainnat} bibliography style for author-year citations.
+\end{itemize}
+
+\subsubsection{README style}
+
+\begin{promptbox}
+\textit{``add readme to modeling tb and write down a summary of the plan''}
+\end{promptbox}
+
+\begin{promptbox}
+\textit{``move the details of the model (lines 36--132) of the readme to a readme inside tb\_toy\_model and add only a short summary of the Modeling in the main README.md''}
+\end{promptbox}
+
+\noindent \textbf{Conventions adopted:}
+\begin{itemize}[noitemsep]
+  \item Root \texttt{README.md}: short sections only; no block of detail longer than a short paragraph; all detail delegated to sub-folder READMEs or PDFs via links.
+  \item Sub-folder READMEs: self-contained for their folder's audience; include setup commands, file annotations, and design rationale.
+  \item Section headers use \texttt{\#\#} (H2); no deeper than \texttt{\#\#\#} (H3).
+  \item Code blocks used for directory trees, shell commands, and model flow diagrams.
+  \item No emoji.
+\end{itemize}
+
+\subsubsection{Notebook style}
+
+\begin{promptbox}
+\textit{``Use ipynb only for the toy model.''}
+\end{promptbox}
+
+\begin{promptbox}
+\textit{``move all the specifics to the 01\_tb\_model notebook''}
+\end{promptbox}
+
+\noindent \textbf{Conventions adopted:}
+\begin{itemize}[noitemsep]
+  \item Notebooks contain the full mathematical specification (ODEs, $R_0$, parameter table) as markdown cells, followed by code cells.
+  \item Markdown cells use MathJax \texttt{\$\$...\$\$} for display equations.
+  \item No narrative text that belongs in the literature review is duplicated in notebooks.
+  \item Each notebook begins with a title cell that states its purpose and cross-references the relevant PDF.
+\end{itemize}
+
+% -----------------------------------------------------------------------
+\section{Observations on the AI-assisted workflow}
+% -----------------------------------------------------------------------
+
+Using AI agents to build this project from scratch revealed several patterns worth noting for future projects.
+
+\subsection{What worked well}
+
+\begin{itemize}
+  \item \textbf{Planning before coding.} The Plan mode step prevented scope creep and produced a concrete, confirmed to-do list before any files were touched. The plan file served as a persistent record that the agent could reference during execution.
+
+  \item \textbf{Skills for domain-specific workflows.} Creating the \texttt{add-references} skill meant the agent followed a consistent, correct process for every citation rather than improvising. Prompts became very short (\textit{``add a skill to add full references including doi''}) because the skill file held the full procedure.
+
+  \item \textbf{Literature search before writing.} The agent searched for and verified bibliographic metadata (DOIs, volumes, page numbers) before writing the \texttt{.bib} file, reducing the risk of hallucinated citations.
+
+  \item \textbf{Incremental refinement.} Structural decisions (LaTeX vs notebook, folder organization, link color) were changed with short, targeted prompts without rebuilding anything from scratch.
+\end{itemize}
+
+\subsection{Limitations observed}
+
+\begin{itemize}
+  \item \textbf{Initial directory structure mismatch.} The agent built files under \texttt{tex/} and \texttt{notebooks/} at the project root, while the user ultimately organized files under \texttt{tb\_literature\_review/} and \texttt{tb\_toy\_model/}. The agent adapted but could not predict the user's preferred top-level naming convention in advance.
+
+  \item \textbf{Toy parameter values.} Default parameter values were chosen to be epidemiologically plausible in order of magnitude, not calibrated to any specific country or dataset. Fitting the model to real WHO incidence data would require a separate calibration step.
+
+  \item \textbf{Notebook tool limitations.} Jupyter notebooks had to be initialized as empty JSON files before cells could be added, adding an extra step compared to plain Python files.
+\end{itemize}
+
+% -----------------------------------------------------------------------
+\section{Estimated resource usage}
+% -----------------------------------------------------------------------
+
+This section documents measurable and estimated costs of the project across time, AI conversations, and subscription fees. Figures labeled \textit{measured} are extracted directly from the agent transcript files in \texttt{.cursor/agent-transcripts/}. Figures labeled \textit{estimated} state their basis explicitly.
+
+\subsection{Timeline}
+
+File system timestamps on the earliest project files (plan file, \texttt{src/} package) show a creation date of \textbf{10 March 2026}. The latest modifications (this document, notebook revisions) are dated \textbf{12 March 2026}. Active development therefore spanned approximately three days.
+
+\subsection{Conversations and messages}
+
+Nine agent transcript files were found in \texttt{.cursor/agent-transcripts/}. The table below summarizes the two primary conversations documented in this report and the aggregate across all nine.
+
+\begin{longtable}{@{}p{3.4cm}p{2.2cm}p{2.2cm}p{2.2cm}p{2.8cm}@{}}
+\toprule
+Conversation & User msgs & Agent turns & Total msgs & Message text (chars) \\
+\midrule
+\endfirsthead
+\toprule
+Conversation & User msgs & Agent turns & Total msgs & Message text (chars) \\
+\midrule
+\endhead
+Main modeling (\texttt{196c0a38}) & 16 & 93 & 109 & 51{,}077 \\
+Tooling (\texttt{b0a3a5d5}) & 6 & 32 & 38 & 18{,}031 \\
+Other 7 conversations & 24 & 101 & 125 & 108{,}815 \\
+\midrule
+\textbf{Total (9 conversations)} & \textbf{46} & \textbf{226} & \textbf{272} & \textbf{177{,}923} \\
+\bottomrule
+\end{longtable}
+
+\noindent \textit{Note on token counts.} The 177{,}923 characters of message text correspond to roughly 44{,}000 tokens of output text (using the standard 4 chars/token heuristic). This figure does not represent total tokens processed by the model: each agent turn receives the full conversation history as context, so cumulative context tokens are substantially higher. The actual token total was not available from the transcript files and would require the Cursor usage dashboard to measure precisely.
+
+\subsection{User time}
+
+\textit{Estimated.} The 46 user prompts ranged from one-line instructions to multi-sentence plan refinements. Reviewing and accepting or rejecting agent output typically takes longer than writing the prompt. A conservative estimate of 5--10 minutes of active user time per prompt (writing + review) gives a total of \textbf{4--8 hours of user-active time} spread across the three-day period.
+
+\subsection{Subscription cost}
+
+The project was built using a \textbf{Cursor Pro} subscription at \$20/month, which includes \$20 of API usage per billing cycle. For a three-day project at the scale documented here (9 moderate-length conversations), usage is expected to remain within the included monthly credit. The cost attributable to this project is therefore at most the prorated share of one month's subscription:
+
+\[
+  \$20 \times \frac{3}{30} \approx \$2\text{ (prorated subscription)}
+\]
+
+\noindent plus any API overage, which is not measurable without the usage dashboard but is likely negligible for this project scope.
+
+\subsection{Energy and carbon}
+
+\textit{Not estimated.} Estimating compute energy would require knowing the exact model(s) used, the total token count including context, and the energy intensity of the data center infrastructure -- none of which are available from the local transcript files. Per-token energy figures for large language models vary by roughly two orders of magnitude across published estimates. This item is left as a known gap.
+
+% -----------------------------------------------------------------------
+\section{Project file tree}
+% -----------------------------------------------------------------------
+
+\begin{Verbatim}[fontsize=\small]
+2026 TB/
+  README.md
+  tb_overview/
+    modeling_tb.tex               % TB epidemiology, modeling approaches, SELT(R) spec
+    modeling_tb.pdf               % compiled PDF
+    references.bib                % BibTeX entries with DOIs
+    tb_programs_stakeholders.tex  % TB programs, stakeholders, elimination efforts
+    tb_programs_stakeholders.pdf  % compiled PDF
+  tb_toy_model/
+    README.md
+    src/
+      __init__.py
+      model.py               % ODE system, solver, R0 calculation
+      parameters.py          % ModelParameters dataclass
+      plotting.py            % time series, tornado plot helpers
+    notebooks/
+      01_tb_model.ipynb      % baseline simulation, R0, treatment scenarios
+      02_sensitivity_analysis.ipynb  % parameter sweeps, tornado diagrams
+  ai_approach/
+    ai_approach.tex          % this document
+    ai_approach.pdf          % compiled PDF
+  .cursor/
+    plans/
+      tb_modeling_learning_project_1d0fe19d.plan.md
+    skills/
+      add-references/SKILL.md
+      compile-tex-after-save/SKILL.md
+    context/
+      context_toy_model.md         % SELT(R) model, src/ API, notebook outlines
+      context_literature_review.md % tb_overview/ structure and style
+      context_ai_approach.md       % ai_approach.tex section map and scope
+      context_consistency.md       % canonical file tree and cross-references
+\end{Verbatim}
+
+\end{document}
