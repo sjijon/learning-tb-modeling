@@ -1,4 +1,4 @@
-# A repository to learn about tuberculosis (TB) modeling approaches
+# Learning about tuberculosis (TB) modeling approaches
 
 This is a self-directed learning project to build skills in TB epidemiology, modeling approaches and using AI agents to achieve those goals. This project was designed as both a learning artifact and a portfolio piece for infectious disease research scientist positions focusing in TB modeling.
 
@@ -9,8 +9,8 @@ This is a self-directed learning project to build skills in TB epidemiology, mod
 1. Learn the epidemiology and natural history of tuberculosis.
 2. Research the TB programs, funding landscape, modeling groups, and key stakeholders to understand the field context for research scientist positions.
 3. Survey the different mathematical modeling approaches used in TB research.
-4. Build a working TB-specific toy model in Python as a concrete implementation of a compartmental ODE approach.
-5. Develop project architecture skills using AI agents, structuring a new technical subject into organized, layered deliverables from scratch, and document the tools, prompts, and workflows used throughout.
+4. Build a working TB-specific toy model in Python.
+5. Develop project architecture skills using AI agents, structuring a new technical subject into organized, layered deliverables from scratch, documenting the tools, prompts, and workflows used throughout.
 
 ---
 
@@ -19,22 +19,22 @@ This is a self-directed learning project to build skills in TB epidemiology, mod
 ```
 2026 TB/
   tb_overview/
-    modeling_tb.tex                # TB epidemiology, natural history, modeling approaches (LaTeX)
-    modeling_tb.pdf                # compiled PDF
-    references.bib                 # BibTeX citations
-    tb_programs_stakeholders.tex   # TB programs, funding, modeling groups, stakeholders
+    modeling_tb.tex                 # TB epidemiology, natural history, modeling approaches (LaTeX)
+    modeling_tb.pdf                 # compiled PDF
+    references.bib                  # BibTeX citations
+    tb_programs_stakeholders.tex    # TB programs, funding, modeling groups, stakeholders
   tb_toy_model/
-    README.md              # model description, setup, design decisions
+    README.md                       # model description, setup, design decisions
     src/
-      model.py             # ODE system and solver wrapper
-      parameters.py        # parameter dataclass with literature-sourced defaults
-      plotting.py          # time series, incidence, and tornado plot helpers
+      model.py                      # ODE system and solver wrapper
+      parameters.py                 # parameter dataclass with literature-sourced defaults
+      plotting.py                   # time series, incidence, and tornado plot helpers
     notebooks/
       01_tb_model.ipynb             # model spec, baseline simulation, R0, treatment scenarios
       02_sensitivity_analysis.ipynb # parameter sweeps, tornado plots
   ai_approach/
-    ai_approach.tex        # documentation of AI agent use, skills, and prompts
-    ai_approach.pdf        # compiled PDF
+    ai_approach.tex                 # documentation of AI agent use, skills, and prompts
+    ai_approach.pdf                 # compiled PDF
 ```
 
 ---
@@ -43,7 +43,7 @@ This is a self-directed learning project to build skills in TB epidemiology, mod
 
 In [`tb_toy_model/`](tb_toy_model/), I build my very first TB model. I start with a very simple deterministic approach, that I plan to develop further to account for treatment, prevention and policy and economic evaluations. 
 
-The model is a deterministic SELT(R) compartmental ODE system (Susceptible, Early Latent, Late Latent, Infectious, Treated, Recovered). It captures TB-specific dynamics -- two-speed latency, self-cure, treatment, relapse, and TB-specific mortality -- that a generic SEIR does not represent. R0 is computed analytically via the next-generation matrix.
+This is a deterministic SELT(R) compartmental ODE system (Susceptible, Early Latent, Late Latent, Infectious, Treated, Recovered). It captures TB-specific dynamics -- two-speed latency, self-cure, treatment, relapse, and TB-specific mortality -- that a generic SEIR does not represent. R0 is computed analytically via the next-generation matrix.
 
 - Biological rationale and modeling approach: [`tb_overview/modeling_tb.pdf`](tb_overview/modeling_tb.pdf)
 - ODE equations, parameter table, and simulation results: [`tb_toy_model/notebooks/01_tb_model.ipynb`](tb_toy_model/notebooks/01_tb_model.ipynb)
