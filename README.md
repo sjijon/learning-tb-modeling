@@ -1,6 +1,6 @@
 # A repository to learn about tuberculosis (TB) modeling approaches
 
-This is a self-directed learning project to build skills in TB epidemiology, modeling approaches, and using AI agents to achieve those goals. this project was designed as both a learning artifact and a portfolio piece for infectious disease research scientist positions focusing in TB modeling.
+This is a self-directed learning project to build skills in TB epidemiology, modeling approaches and using AI agents to achieve those goals. This project was designed as both a learning artifact and a portfolio piece for infectious disease research scientist positions focusing in TB modeling.
 
 ---
 
