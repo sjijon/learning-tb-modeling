@@ -1,10 +1,15 @@
-from .model import compute_basic_reproduction_number, run_simulation
-from .parameters import InitialState, ModelParameters, create_default_initial_state
+from .model import (
+    compute_basic_reproduction_number,
+    create_initial_states,
+    run_replications,
+    run_simulation,
+)
+from .parameters import ModelParameters
 
 __all__ = [
     "compute_basic_reproduction_number",
+    "create_initial_states",
+    "run_replications",
     "run_simulation",
-    "InitialState",
     "ModelParameters",
-    "create_default_initial_state",
 ]
