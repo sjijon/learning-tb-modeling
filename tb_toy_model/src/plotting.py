@@ -16,7 +16,8 @@ def plot_compartment_timeseries(
             "susceptible",
             "latent_fast",
             "latent_slow",
-            "infectious",
+            "infectious_sub",
+            "infectious_clin",
             "treated",
             "recovered",
         ]
@@ -52,7 +53,7 @@ def plot_incident_active_tb(
 
 def plot_replications(
     results_list: List[dict],
-    compartment: str = "infectious",
+    compartment: str = "infectious_clin",
     per_100k: bool = False,
     figure_size: tuple = (10, 5),
 ) -> None:
