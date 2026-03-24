@@ -29,45 +29,52 @@ tb_toy_model/
 
 ## Model: SELT(R)
 
-Six compartments: Susceptible (S), Early Latent / fast progressors (Lf), Late Latent / slow progressors (Ls), Infectious (I), Treated (T), Recovered / self-cured (R).
+Seven compartments: Susceptible (S), Early Latent / fast progressors (Lf), Late Latent / slow progressors (Ls), Subclinical Infectious (Isub), Clinical Infectious (Iclin), Treated (T), Recovered / self-cured (R).
 
 ### Why not plain SEIR
 
 - TB latency is heterogeneous: ~10% of new infections progress to active disease within months (fast), ~90% carry a low long-term reactivation risk (slow).
 - Self-cure is common (~50% of untreated cases over 3 years); recovered individuals can reactivate.
-- Treatment modifies the infectious duration; treated individuals can relapse.
-- TB carries excess mortality beyond the background death rate.
+- Active TB passes through a subclinical stage (Isub) before becoming symptomatic (Iclin): subclinical cases transmit at reduced intensity and escape passive symptom-based case finding (Zwerling et al. 2015, Richards 2023, Kendall 2021).
+- Treatment is not instantaneous: the diagnostic cascade (care-seeking → testing → linkage) determines effective detection rate κσφ.
+- TB carries excess mortality beyond the background death rate (clinical stage only).
 
 ### Compartment flows
 
 ```
-S  --[infection]--> Lf  --[fast progression]--> I
-S  --[infection]--> Ls  --[slow reactivation]--> I
-I  --[treatment]-->  T  --[relapse]--> I
-I  --[self-cure]-->  R  --[reactivation]--> I
-I  --[TB death]-->   D  (removed from population)
+S   --[infection]--> Lf   --[fast progression]--> Isub
+S   --[infection]--> Ls   --[slow reactivation]--> Isub
+Isub --[ω]---------> Iclin --[κσφ]-----------> T  --[relapse ρ_T]--> Isub
+Isub --[self-cure γ]-> R
+Iclin --[self-cure γ]-> R   --[reactivation ρ_R]--> Isub
+Iclin --[TB death δ]--> D
 ```
 
 ### ODE system
 
-Force of infection: λ = β · I / N, where N = S + Lf + Ls + I + T + R.
+Force of infection: λ = β · (ε · Isub + Iclin) / N, where N = S + Lf + Ls + Isub + Iclin + T + R.
+ε = subclinical_relative_infectiousness (default 0.15).
 
 ```
-dS/dt   = b·N − λ·S − μ·S
-dLf/dt  = f·λ·S − ν_fast·Lf − μ·Lf
-dLs/dt  = (1−f)·λ·S − ν_slow·Ls − μ·Ls
-dI/dt   = ν_fast·Lf + ν_slow·Ls + ρ_T·T + ρ_R·R − (τ + γ + δ + μ)·I
-dT/dt   = τ·I − ρ_T·T − μ·T
-dR/dt   = γ·I − ρ_R·R − μ·R
+dS/dt     = b·N − λ·S − μ·S
+dLf/dt    = f·λ·S − ν_fast·Lf − μ·Lf
+dLs/dt    = (1−f)·λ·S − ν_slow·Ls − μ·Ls
+dIsub/dt  = ν_fast·Lf + ν_slow·Ls + ρ_T·T + ρ_R·R − (ω + γ + μ)·Isub
+dIclin/dt = ω·Isub − (κσφ + γ + δ + μ)·Iclin
+dT/dt     = κσφ·Iclin − ρ_T·T − μ·T
+dR/dt     = γ·(Isub + Iclin) − ρ_R·R − μ·R
 ```
 
-### R0 (next-generation matrix approximation)
+### R0 (next-generation matrix)
+
+Let d_sub = ω + γ + μ, d_clin = κσφ + γ + δ + μ.
 
 ```
-R0 = β · [1 / (τ + γ + δ + μ)] · [f · ν_fast/(ν_fast + μ) + (1−f) · ν_slow/(ν_slow + μ)]
+R0 = p_I · β · (ε · d_clin + ω) / (d_sub · d_clin)
+p_I = f · ν_fast/(ν_fast + μ) + (1−f) · ν_slow/(ν_slow + μ)
 ```
 
-Three factors: transmission rate × mean infectious duration × probability of ever reaching I (weighted over fast and slow progressors).
+Improving σ or φ increases d_clin → reduces R0 (shorter clinical infectious period). Reducing ε (early detection) reduces subclinical transmission contribution.
 
 ---
 
@@ -75,27 +82,30 @@ Three factors: transmission rate × mean infectious duration × probability of e
 
 | Symbol | Field name | Default value | Units | Source / note |
 |---|---|---|---|---|
-| N | `population_size` | 1,000,000 | persons | project default |
+| N | `n_agents` | 50,000 | persons | laptop-scale default |
 | b | `birth_rate` | 1/70 | 1/year | ~70-year life expectancy |
 | μ | `natural_death_rate` | 1/70 | 1/year | ~70-year life expectancy |
-| β | `transmission_rate` | 12.0 | 1/year | yields plausible R0 |
+| β | `transmission_rate` | 20.0 | 1/year | yields R0 ≈ 2.2, consistent with high-burden TB settings |
 | f | `fast_progressor_fraction` | 0.10 | — | 5–10% early progression (Vynnycky & Fine 1997) |
 | ν_fast | `fast_progression_rate` | 2.0 | 1/year | months to active TB (Vynnycky & Fine 1997) |
 | ν_slow | `slow_reactivation_rate` | 0.001 | 1/year | long-term reactivation (Vynnycky & Fine 1997) |
-| τ | `treatment_rate` | 1.0 | 1/year | mean 1-year delay to treatment |
+| ω | `subclinical_progression_rate` | 1.0 | 1/year | ~1-year subclinical phase (Richards 2023, Kendall 2021) |
+| ε | `subclinical_relative_infectiousness` | 0.15 | — | ~15% of clinical; indirect household-contact estimates |
+| κ | `care_seeking_rate` | 2.0 | 1/year | twice-yearly presentation; patient-delay literature |
+| σ | `test_sensitivity` | 0.65 | — | smear microscopy pooled sensitivity (Steingart et al.) |
+| φ | `linkage_to_treatment_prob` | 0.80 | — | WHO diagnostic cascade estimates |
 | γ | `self_cure_rate` | 0.2 | 1/year | ~5-year mean self-cure (Tiemersma et al. 2011) |
 | δ | `tb_mortality_rate` | 0.2 | 1/year | ~50% 3-year fatality (Tiemersma et al. 2011) |
 | ρ_T | `relapse_rate_treated` | 0.02 | 1/year | toy value |
 | ρ_R | `relapse_rate_recovered` | 0.01 | 1/year | toy value |
 
-### Default initial conditions (`create_default_initial_state`)
+Effective detection rate: κ · σ · φ = 2.0 × 0.65 × 0.80 = 1.04/year ≈ old single treatment_rate = 1.0/year.
 
-- `infectious` = 10
-- `latent_slow` = 1,000
-- `latent_fast` = 0
-- `treated` = 0
-- `recovered` = 0
-- `susceptible` = N − all above
+### Default initial conditions (`create_initial_states`)
+
+- `infectious_clin` (ICLIN) = 10 (scaled from 10 per million)
+- `latent_slow` = 50 (scaled from 1,000 per million)
+- all other compartments = 0 or S (remainder)
 
 ---
 
@@ -121,18 +131,21 @@ def create_default_initial_state(parameters: ModelParameters) -> InitialState
 
 ### `model.py`
 
+State integer encoding: S=0, LFAST=1, LSLOW=2, ISUB=3, ICLIN=4, T=5, R=6, DEAD=7.
+
 ```python
-def tuberculosis_ode_system(time_point, state_vector, parameters) -> np.ndarray
-    # Right-hand side of the ODE system. Passed directly to solve_ivp.
-
 def compute_basic_reproduction_number(parameters: ModelParameters) -> float
-    # Analytical R0 via next-generation matrix approximation.
+    # Analytical R0 via next-generation matrix:
+    # R0 = p_I · β · (ε·d_clin + ω) / (d_sub · d_clin)
 
-def run_simulation(parameters, initial_state, time_span_years, evaluation_times) -> dict
-    # Runs solve_ivp and returns results dict with keys:
-    #   time_years, susceptible, latent_fast, latent_slow, infectious,
+def run_simulation(parameters, time_horizon_years, seed) -> dict
+    # Returns results dict with keys:
+    #   time_years, susceptible, latent_fast, latent_slow,
+    #   infectious_sub, infectious_clin,
     #   treated, recovered, total_population, prevalence_infectious,
-    #   incident_active_tb, parameters
+    #   incident_active_tb, new_infections, parameters
+
+def run_replications(parameters, n_replications, time_horizon_years, base_seed) -> list[dict]
 ```
 
 ### `plotting.py`
@@ -155,15 +168,15 @@ def plot_tornado(parameter_names, low_values, high_values, baseline_value, x_lab
 ### `01_tb_model.ipynb`
 
 Cells in order:
-1. Title + cross-reference to `tb_overview/modeling_tb.pdf`
-2. ODE system (markdown with MathJax)
-3. R0 formula and interpretation (markdown)
-4. Parameter table (markdown)
-5. Imports (adds `tb_toy_model/` parent to `sys.path`, imports from `src/`)
-6. Instantiate `ModelParameters`, compute and print R0
-7. Run 100-year baseline simulation (`np.linspace(0, 100, 1001)`)
-8. Plot compartment time series and incidence curve
-9. Treatment scenario: baseline vs `treatment_rate=2.0`
+1. Title + framing (subclinical stage + diagnostic cascade extensions)
+2. Model structure: 7 compartments, transition table, ODE system with new force of infection
+3. R0 formula: two-stage next-generation matrix derivation
+4. Parameter table (includes ω, ε, κ, σ, φ; removes old τ)
+5. Imports
+6. Instantiate `ModelParameters`, compute and print R0 (~1.3)
+7. Run 50-year baseline, plot compartments (`infectious_sub`, `infectious_clin`, etc.) and incidence
+8. 20 replications — `compartment="infectious_clin"`
+9. Stochastic extinction demo — checks `r["infectious_clin"][-1] == 0`
 
 ### `02_sensitivity_analysis.ipynb`
 
@@ -171,11 +184,12 @@ Cells in order:
 1. Title + cross-reference
 2. Imports
 3. Run baseline; compute baseline R0 and cumulative incidence (`np.trapz`)
-4. One-at-a-time loop: vary 8 parameters ±20%, collect R0 and cumulative incidence for low/high
+4. One-at-a-time loop: vary parameters ±20%, collect R0 and cumulative incidence for low/high
 5. Tornado plot for R0
 6. Tornado plot for cumulative incidence
 
-Parameters swept: `transmission_rate`, `fast_progressor_fraction`, `fast_progression_rate`, `slow_reactivation_rate`, `treatment_rate`, `self_cure_rate`, `tb_mortality_rate`, `relapse_rate_treated`.
+Parameters to sweep (update from old `treatment_rate` to new diagnostic cascade params):
+`transmission_rate`, `fast_progressor_fraction`, `subclinical_progression_rate`, `subclinical_relative_infectiousness`, `care_seeking_rate`, `test_sensitivity`, `linkage_to_treatment_prob`, `self_cure_rate`, `tb_mortality_rate`.
 
 ---
 
