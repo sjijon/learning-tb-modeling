@@ -86,34 +86,51 @@ TB prevalence (active disease at a point in time) exceeds incidence because case
 \subsection{Natural history in the absence of treatment}
 Natural history in the absence of treatment is prolonged. A systematic review of pre-chemotherapy era data estimates untreated pulmonary TB has an average duration of about three years and high case fatality, especially in smear-positive disease \citep{tiemersma2011natural}. These estimates provide important anchors for model parameters related to infectious duration and TB-specific mortality.
 
-Recent evidence emphasizes a spectrum of TB disease states, including minimal disease (non-infectious), subclinical disease (infectious but asymptomatic), and clinical disease (symptomatic and infectious) \citep{richards2023spectrum}. Subclinical TB has epidemiological relevance because it contributes to transmission while escaping symptom-based detection \citep{kendall2021subclinical}.
+Recent evidence emphasizes a spectrum of TB disease states, including minimal disease (non-infectious), subclinical disease (infectious but asymptomatic), and clinical disease (symptomatic and infectious) \citep{richards2023spectrum}. Subclinical TB has epidemiological relevance because it contributes to transmission while escaping symptom-based detection \citep{kendall2021subclinical}. An individual participant data meta-analysis of 620{,}682 adults across 12 nationally representative surveys found that 59\% of bacteriologically confirmed TB cases had no persistent cough---rising to 83\% after adjustment for false-negative chest radiographs---underscoring how heavily symptom-based detection underestimates the infectious pool \citep{stuck2024subclinical}.
+
+A Bayesian-calibrated model spanning the full infection-to-disease spectrum yields several results that update standard assumptions embedded in compartmental models \citep{horton2023spectrum}. The model estimates that 92\% of newly infected individuals self-clear within 10 years; only 7.9\% progress to any form of TB disease, and of those, only 33\% reach symptomatic clinical disease. The conventional ``5--10\% lifetime risk'' figure therefore refers specifically to infectious disease and conflates clearance of latent infection with persistent risk. A further finding is that nearly half of those who develop infectious disease undulate between subclinical and clinical states rather than following a unidirectional progression, and only 44\% of clinical TB onset occurs within 2 years of infection---compared to 98\% of minimal-disease onset---indicating that slow progressors are heterogeneous in ways the simple ``fast/slow'' latency split does not fully capture.
 
 \begin{figure}[h]
 \centering
 \begin{tikzpicture}[
   node distance = 1.6cm,
-  box/.style = {draw, rounded corners, align=center, minimum width=2.2cm, minimum height=0.9cm, font=\footnotesize},
-  arrow/.style = {-{Latex[length=3mm,width=2mm]}}
+  box/.style      = {draw, rounded corners, align=center, minimum width=2.4cm, minimum height=0.9cm, font=\footnotesize},
+  boxgray/.style  = {draw, rounded corners, align=center, minimum width=2.4cm, minimum height=0.9cm, font=\footnotesize, fill=gray!15},
+  arrow/.style    = {-{Latex[length=3mm,width=2mm]}}
 ]
+% Column 1: susceptible
 \node[box] (S) {Susceptible\\(S)};
-\node[box, right=of S, yshift=0.8cm] (Lf) {Early latent\\(L\_fast)};
-\node[box, right=of S, yshift=-0.8cm] (Ls) {Late latent\\(L\_slow)};
-\node[box, right=of Lf, yshift=-0.8cm] (I) {Infectious\\(I)};
-\node[box, right=of I, yshift=0.9cm] (T) {Treated\\(T)};
-\node[box, right=of I, yshift=-0.9cm] (R) {Recovered\\(R)};
-\node[box, right=of I, yshift=-2.6cm] (D) {TB death\\(D)};
+% Column 2: latent
+\node[box, right=2.0cm of S, yshift= 0.9cm] (Lf) {Early latent\\($L_\text{fast}$)};
+\node[box, right=2.0cm of S, yshift=-0.9cm] (Ls) {Late latent\\($L_\text{slow}$)};
+% Column 3: infectious sub
+\node[boxgray, right=2.0cm of Lf, yshift=-0.9cm] (Isub) {Subclinical\\($I_\text{sub}$)};
+% Column 4: infectious clin
+\node[box, right=2.2cm of Isub] (Iclin) {Clinical\\($I_\text{clin}$)};
+% Column 5: outcomes
+\node[box, right=2.0cm of Iclin, yshift= 0.9cm] (T) {Treated\\(T)};
+\node[box, right=2.0cm of Iclin, yshift=-0.9cm] (R) {Recovered\\(R)};
+\node[box, below=1.1cm of Iclin] (D) {TB death\\(D)};
 
-\draw[arrow] (S) -- node[above, rotate=15, outer sep=0.5cm] {infection} (Lf);
-\draw[arrow] (S) -- node[below, rotate=-15, outer sep=0.5cm] {infection} (Ls);
-\draw[arrow] (Lf) -- node[above, rotate=-15, outer sep=0.5cm] {fast progression} (I);
-\draw[arrow] (Ls) -- node[below, rotate=15, outer sep=0.5cm] {slow reactivation} (I);
-\draw[arrow] (I) -- node[above, rotate=15, outer sep=0.5cm] {treatment} (T);
-\draw[arrow] (I) -- node[below, rotate=-15, outer sep=0.5cm] {self-cure} (R);
-\draw[arrow] (I) -- node[right] {TB mortality} (D);
-\draw[arrow] (T) .. controls +(right:1.2cm) and +(right:1.2cm) .. node[right] {relapse} (I);
-\draw[arrow] (R) .. controls +(right:1.2cm) and +(right:1.2cm) .. node[right] {reactivation} (I);
+% Infection arrows
+\draw[arrow] (S) -- node[above, font=\scriptsize, sloped] {infection} (Lf);
+\draw[arrow] (S) -- node[below, font=\scriptsize, sloped] {infection} (Ls);
+% Latent progression
+\draw[arrow] (Lf) -- node[above, font=\scriptsize, sloped] {fast ($\nu_\text{fast}$)} (Isub);
+\draw[arrow] (Ls) -- node[below, font=\scriptsize, sloped] {slow ($\nu_\text{slow}$)} (Isub);
+% Subclinical progression
+\draw[arrow] (Isub) -- node[above, font=\scriptsize] {$\omega$} (Iclin);
+% Clinical exits
+\draw[arrow] (Iclin) -- node[above, font=\scriptsize, sloped] {$\kappa\sigma\phi$} (T);
+\draw[arrow] (Iclin) -- node[below, font=\scriptsize, sloped] {self-cure ($\gamma$)} (R);
+\draw[arrow] (Iclin) -- node[right, font=\scriptsize] {$\delta$} (D);
+% Self-cure from subclinical
+\draw[arrow] (Isub) .. controls +(down:1.2cm) and +(left:1.2cm) .. node[below, font=\scriptsize] {self-cure ($\gamma$)} (R);
+% Relapse / reactivation back to Isub
+\draw[arrow] (T) .. controls +(right:1.2cm) and +(right:1.2cm) .. node[right, font=\scriptsize] {relapse ($\rho_T$)} (Isub);
+\draw[arrow] (R) .. controls +(right:1.5cm) and +(right:1.5cm) .. node[right, font=\scriptsize] {reactivation ($\rho_R$)} (Isub);
 \end{tikzpicture}
-\caption{Simplified TB natural history used for the toy model.}
+\caption{TB natural history with subclinical infectious stage and diagnostic cascade. Shaded compartment ($I_\text{sub}$) is not detectable by passive case finding. Detection from $I_\text{clin}$ requires care-seeking (rate $\kappa$), a positive test (probability $\sigma$), and linkage to treatment (probability $\phi$); the effective detection rate is $\kappa\sigma\phi$.}
 \label{fig:tb_flow}
 \end{figure}
 
@@ -133,9 +150,13 @@ Deterministic ODE models suppress variability and mask uncertainty in parameter 
 
 More complex ODE models stratify the population further to capture phenomena absent from simple SEIR-like structures. \citet{trauer2014construction} constructed a ten-compartment deterministic model calibrated to high-burden settings in the Asia-Pacific. The model adds: (i) a declining hazard of active disease with time since infection, (ii) explicit reinfection during latency and after treatment, (iii) a separate multidrug-resistant (MDR-TB) strain with fitness costs and de novo resistance during treatment, and (iv) a vaccine compartment with temporary efficacy. A critical finding is that the model could not reproduce observed incidence trajectories without allowing reinfection during latency, indicating this mechanism is epidemiologically important in high-burden settings. Additionally, even a modestly fit MDR-TB strain becomes dominant at equilibrium under most parameterizations, illustrating how treatment coverage interacts with drug resistance dynamics in ways that simple two-strain ODE models capture efficiently.
 
+\citet{zwerling2015modelling} extend this theoretical framework by defining a strain-specific effective reproductive ratio $R_{e,\text{dr}}$ for drug-resistant strains operating within an ongoing drug-sensitive epidemic. A key analytical result is that the rate of \emph{de novo} resistance acquisition during treatment does not enter the expression for $R_{e,\text{dr}}$: only the relative transmission fitness and the relative duration of infectiousness of the resistant strain determine its long-run competitive advantage. This has a counterintuitive surveillance implication: DR-TB prevalence in the first $\sim$5 years following launch of a new first-line drug regimen is dominated by acquisition-driven dynamics, and may therefore not predict the long-term trajectory, which is governed by transmission fitness. Drug susceptibility testing (DST) deployed alongside new regimens reduces the duration of DR-TB infection and hence lowers $R_{e,\text{dr}}$, giving it outsized long-run benefit relative to what short-term surveillance data alone would suggest.
+
 \subsection{Individual-based and microsimulation models}
 
 When population heterogeneity is a first-order concern---for example, when modeling targeted interventions in low-incidence settings---individual-based or microsimulation models offer advantages that ODE compartmental models cannot easily replicate. \citet{goodell2019california} developed a discrete-time stochastic microsimulation for California in which each simulated individual carries attributes including age, race/ethnicity, nativity, and medical risk factors (HIV, diabetes, immunosuppressive therapy, among others) that modify their reactivation rate. The model captures semi-random mixing by nativity group and is calibrated to historical case counts from 2001 to 2014. Compared to population-level ODE projections, the individual-based structure allows the authors to estimate cost per QALY for interventions targeted at specific risk groups, and to model the threshold scale-up needed to hit the WHO pre-elimination target of $<10$ cases per million. The trade-off is substantially higher computational cost and greater data requirements for demographic parameterization.
+
+A 2024 systematic review of ABMs for TB transmission \citep{bui2024agentbased} provides the most comprehensive survey of the field to date, covering 26 studies published through December 2022 across high-, moderate-, and low-burden settings. The review confirms that ABMs excel at capturing heterogeneous mixing, household structure, and high-risk transmission clusters---features that ODE compartmental models cannot replicate without strong aggregation assumptions. Most included studies incorporated population heterogeneity and household structure, but spatial structure and economic evaluation modules were commonly absent. A reproducibility gap is also evident: only 8 of 26 studies shared code openly. The authors recommend open-source code sharing and standardised reporting as immediate priorities for the field. A practical implication is that ABMs and ODE models should be seen as complementary: ODE models remain the appropriate baseline for aggregate transmission dynamics and policy projections at national scale, while ABMs are better suited to questions dominated by network structure, targeted interventions, or elimination thresholds where individual heterogeneity is first-order.
 
 \subsection{Risk-factor stratified models: nutrition and biomarkers}
 
@@ -151,7 +172,16 @@ Diabetes mellitus (DM) substantially increases the risk of TB and is increasingl
 
 Collectively, these risk-factor stratified models share a structural logic: the standard compartmental states ($S, L, I, T, R$) are replicated across risk strata, stratum-specific rates substitute for scalar parameters, and movement between strata represents changes in the underlying biomarker. The design choice of how many strata to use, and how to parameterise inter-stratum transition rates from survey data, is a key modelling decision with direct implications for policy inference.
 
+\subsection{Models of diagnostic interventions and the transmission curve}
+
+Compartmental models can be coupled with explicit representations of the diagnostic and care-seeking pathway to evaluate the population-level impact of novel diagnostic tests. \citet{zwerling2015modelling} synthesise this literature and provide a unified conceptual framework centred on the \emph{transmission curve}: the time-varying rate at which an index case generates secondary infections over the course of their infectious episode. The shape of this curve---which depends on bacterial shedding dynamics, the rate of contact with susceptible individuals, and host susceptibility---determines how much of the total transmission burden can realistically be averted by a diagnostic intervention deployed at a given stage of disease.
+
+A critical implication is that passive case finding (relying on symptomatic presentation) is structurally late relative to the transmission peak. Models that assume zero infectiousness prior to symptom onset systematically overestimate the impact of passive diagnostic strategies by 50\% or more, because they miss transmission occurring during the subclinical phase. Active case detection---identifying prevalent cases in the community irrespective of symptom status---accesses the earlier, steeper portion of the transmission curve and delivers greater reductions in $R_e$ per case detected. An additional constraint on passive diagnosis is contact saturation: the pool of susceptible household contacts often reaches saturation before an index case is diagnosed, and modelling suggests that 75--95\% of household infections may already have occurred by the time contact tracing is initiated, limiting the transformative potential of household-tracing programs in isolation.
+
+Smear-negative cases, which escape traditional sputum-smear detection, can still contribute a substantial fraction of population-level transmission; models must represent this group explicitly to give unbiased projections of the impact of microbiological diagnostics. More broadly, the effectiveness of any diagnostic intervention is not solely a function of test sensitivity: it also depends on access to care, the diagnostic algorithm, linkage to treatment, and the epidemiological context. These structural considerations complement the cost-effectiveness analyses in Section~\ref{sec:econ} and explain why identical tests may have very different population-level impact across settings with different care-seeking patterns.
+
 \section{Economic evaluation approaches for TB}
+\label{sec:econ}
 
 Economic evaluation methods are used in TB research to assess whether interventions deliver sufficient health benefit relative to their costs, and to prioritize limited resources across competing strategies. The three most common frameworks are cost-effectiveness analysis (CEA), cost-utility analysis (CUA), and budget impact analysis (BIA). CEA and CUA typically compute an incremental cost-effectiveness ratio (ICER):
 \[
@@ -165,7 +195,7 @@ Budget impact analysis differs from CEA in that it asks not whether an intervent
 
 \section{The SELT(R) model used in this project}
 
-The toy model implemented here is a deterministic compartmental ODE model with six state variables, chosen to reflect the biological features described in Section~\ref{sec:epi}: the two-speed nature of latency, the possibility of self-cure, the modification of infectious duration by treatment, and excess TB-specific mortality.
+The toy model implemented here is a discrete-time stochastic microsimulation with seven state variables, chosen to reflect the biological features described in Section~\ref{sec:epi} together with two extensions motivated by Section~\ref{sec:epi}: (i) an explicit subclinical infectious stage informed by the disease spectrum literature \citep{richards2023spectrum, kendall2021subclinical}, and (ii) a disaggregated diagnostic cascade following the transmission-curve framework of \citet{zwerling2015modelling}.
 
 \subsection{Compartments and biological rationale}
 
@@ -173,12 +203,33 @@ The toy model implemented here is a deterministic compartmental ODE model with s
   \item \textbf{Susceptible ($S$)} -- individuals with no prior infection, fully at risk.
   \item \textbf{Early latent ($L_\text{fast}$)} -- recently infected fast progressors ($\sim$10\% of new infections), who develop active TB within months.
   \item \textbf{Late latent ($L_\text{slow}$)} -- recently infected slow progressors ($\sim$90\%), who carry a low but persistent long-term reactivation risk.
-  \item \textbf{Infectious ($I$)} -- active pulmonary TB; symptomatic or subclinical, capable of transmission.
-  \item \textbf{Treated ($T$)} -- individuals on treatment; no longer contributing to transmission, but subject to relapse.
-  \item \textbf{Recovered ($R$)} -- self-cured; no longer infectious, but reactivation is possible.
+  \item \textbf{Subclinical infectious ($I_\text{sub}$)} -- active TB in the pre-symptomatic or minimally symptomatic phase; capable of transmission at reduced intensity (relative infectiousness $\varepsilon < 1$) but not detectable by passive symptom-based case finding.
+  \item \textbf{Clinical infectious ($I_\text{clin}$)} -- symptomatic active TB; full infectiousness; accessible to passive diagnosis. The diagnostic pathway from $I_\text{clin}$ to treatment involves three sequential steps: care-seeking at rate $\kappa$, a positive test result with probability $\sigma$, and linkage to treatment with probability $\phi$, yielding an effective detection rate $\kappa\sigma\phi$.
+  \item \textbf{Treated ($T$)} -- individuals on treatment; no longer contributing to transmission, but subject to relapse into $I_\text{sub}$.
+  \item \textbf{Recovered ($R$)} -- self-cured from either infectious stage; no longer infectious, but reactivation into $I_\text{sub}$ is possible.
 \end{itemize}
 
-The flow diagram (Figure~\ref{fig:tb_flow}) summarizes all transitions. The full ODE system, $R_0$ expression, and default parameter values with literature sources are documented in notebook \texttt{01\_tb\_model.ipynb}.
+\subsection{Force of infection and the transmission curve}
+
+The force of infection is:
+\[
+  \lambda = \frac{\beta\,(\varepsilon\, I_\text{sub} + I_\text{clin})}{N}
+\]
+where $\varepsilon \in (0,1)$ captures the partial contribution of subclinical cases to transmission. Setting $\varepsilon = 0$ recovers a model in which only symptomatic cases transmit; setting $\varepsilon = 1$ recovers the original single-compartment model. The parameter $\varepsilon$ operationalizes the transmission-curve concept of \citet{zwerling2015modelling}: passive diagnosis arrives late relative to the infectiousness peak, and the proportion of transmission occurring before symptom onset (indexed by $\varepsilon$) determines how much passive case-finding can actually avert.
+
+\subsection{Basic reproduction number}
+
+With two infectious stages, $R_0$ is derived from the next-generation matrix:
+\[
+  R_0 = p_I \cdot \beta \cdot \frac{\varepsilon\, d_\text{clin} + \omega}{d_\text{sub}\cdot d_\text{clin}}
+\]
+where $d_\text{sub} = \omega + \gamma + \mu$, $d_\text{clin} = \kappa\sigma\phi + \gamma + \delta + \mu$, and
+\[
+  p_I = f\cdot\frac{\nu_\text{fast}}{\nu_\text{fast}+\mu} + (1-f)\cdot\frac{\nu_\text{slow}}{\nu_\text{slow}+\mu}
+\]
+is the probability a new latent infection eventually reaches $I_\text{sub}$. Improving test sensitivity $\sigma$ or linkage $\phi$ increases $d_\text{clin}$, shortening the mean clinical infectious duration and thereby reducing $R_0$.
+
+The flow diagram (Figure~\ref{fig:tb_flow}) summarizes all compartments and transitions. The full ODE system, $R_0$ expression, and default parameter values with literature sources are documented in notebook \texttt{01\_tb\_model.ipynb}.
 
 \bibliographystyle{plainnat}
 \bibliography{references}
