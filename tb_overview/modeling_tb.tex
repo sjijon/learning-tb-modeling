@@ -18,6 +18,8 @@
 
 \begin{document}
 \maketitle
+\tableofcontents
+\newpage
 
 \section{TB epidemiology and natural history}
 \label{sec:epi}
@@ -159,6 +161,7 @@ When population heterogeneity is a first-order concern---for example, when model
 A 2024 systematic review of ABMs for TB transmission \citep{bui2024agentbased} provides the most comprehensive survey of the field to date, covering 26 studies published through December 2022 across high-, moderate-, and low-burden settings. The review confirms that ABMs excel at capturing heterogeneous mixing, household structure, and high-risk transmission clusters---features that ODE compartmental models cannot replicate without strong aggregation assumptions. Most included studies incorporated population heterogeneity and household structure, but spatial structure and economic evaluation modules were commonly absent. A reproducibility gap is also evident: only 8 of 26 studies shared code openly. The authors recommend open-source code sharing and standardised reporting as immediate priorities for the field. A practical implication is that ABMs and ODE models should be seen as complementary: ODE models remain the appropriate baseline for aggregate transmission dynamics and policy projections at national scale, while ABMs are better suited to questions dominated by network structure, targeted interventions, or elimination thresholds where individual heterogeneity is first-order.
 
 \subsection{Risk-factor stratified models: nutrition and biomarkers}
+\label{sec:modeling_extensions}
 
 A second class of model extensions stratifies the population along a continuous biological risk factor---most commonly body mass index (BMI) or glycaemic status---rather than by transmission or drug-resistance status. The key modelling step is to replace scalar progression and treatment-outcome rates with values that depend on the stratum, allowing the force of infection on downstream compartments to vary by nutritional or metabolic state.
 
@@ -179,6 +182,40 @@ Compartmental models can be coupled with explicit representations of the diagnos
 A critical implication is that passive case finding (relying on symptomatic presentation) is structurally late relative to the transmission peak. Models that assume zero infectiousness prior to symptom onset systematically overestimate the impact of passive diagnostic strategies by 50\% or more, because they miss transmission occurring during the subclinical phase. Active case detection---identifying prevalent cases in the community irrespective of symptom status---accesses the earlier, steeper portion of the transmission curve and delivers greater reductions in $R_e$ per case detected. An additional constraint on passive diagnosis is contact saturation: the pool of susceptible household contacts often reaches saturation before an index case is diagnosed, and modelling suggests that 75--95\% of household infections may already have occurred by the time contact tracing is initiated, limiting the transformative potential of household-tracing programs in isolation.
 
 Smear-negative cases, which escape traditional sputum-smear detection, can still contribute a substantial fraction of population-level transmission; models must represent this group explicitly to give unbiased projections of the impact of microbiological diagnostics. More broadly, the effectiveness of any diagnostic intervention is not solely a function of test sensitivity: it also depends on access to care, the diagnostic algorithm, linkage to treatment, and the epidemiological context. These structural considerations complement the cost-effectiveness analyses in Section~\ref{sec:econ} and explain why identical tests may have very different population-level impact across settings with different care-seeking patterns.
+
+\section{Interactions with HIV}
+\label{sec:hiv}
+
+HIV co-infection is the single most important biological modifier of TB natural history at the population level. HIV-positive individuals have a dramatically elevated risk of progressing from latent TB infection to active disease---estimated at 20--30 times the risk in HIV-negative individuals---and this effect intensifies as CD4$^+$ cell counts decline \citep{getahun2010hiv, lawn2011tuberculosis}. The interaction is bidirectional: TB accelerates HIV disease progression and is the leading cause of death among people living with HIV globally, while HIV reshapes TB epidemiology by expanding the infectious pool and shortening the interval between infection and disease \citep{corbett2003growing}. In 2024, approximately 600{,}000 new TB cases occurred among HIV-positive individuals, and HIV-associated TB accounted for a disproportionate share of TB deaths, particularly in sub-Saharan Africa \citep{who2025global}.
+
+\subsection{Biological mechanisms and parameter modifications}
+
+HIV modifies several parameters in standard TB compartmental models. The most important effects are:
+
+\begin{itemize}
+  \item \textbf{Increased progression rate.} HIV infection raises both the fast-progression rate ($\nu_\text{fast}$) and the slow-reactivation rate ($\nu_\text{slow}$), with the magnitude depending on CD4$^+$ count. Models that stratify by HIV status typically multiply the baseline progression rates by a CD4-dependent relative risk ranging from $\sim$3 at high CD4 counts ($>500$ cells/$\mu$L) to $>$15 at counts below 200 cells/$\mu$L \citep{williams2003antiretroviral}.
+  \item \textbf{Increased susceptibility to (re)infection.} HIV-positive individuals who clear a primary TB infection remain at elevated risk of reinfection, further compounding the progression effect.
+  \item \textbf{Modified disease presentation.} HIV-associated TB is more often smear-negative and extrapulmonary, reducing sensitivity of sputum-smear-based diagnostics and delaying detection. In the subclinical/clinical framework of Section~\ref{sec:epi}, this can be represented as a lower care-seeking rate $\kappa$ or lower test sensitivity $\sigma$ for HIV-positive individuals.
+  \item \textbf{Higher case fatality.} TB-specific mortality ($\delta$) is substantially elevated in HIV co-infected individuals, and untreated TB in turn accelerates progression to AIDS.
+\end{itemize}
+
+\subsection{Modeling approaches for TB--HIV co-dynamics}
+
+The simplest approach replicates the TB compartmental structure across HIV strata, yielding a ``crossed'' model in which each TB state ($S$, $L_\text{fast}$, $L_\text{slow}$, $I_\text{sub}$, $I_\text{clin}$, $T$, $R$) exists for HIV-negative and HIV-positive sub-populations, with HIV-status-dependent rates. This doubles (or further multiplies, if CD4 strata are used) the number of state variables but preserves the ODE framework.
+
+\citet{bacaer2008modeling} developed a six-compartment model for the joint TB and HIV epidemics in a South African township where HIV prevalence exceeded 20\% and TB notification rates approached 2{,}000 per 100{,}000 per year. The model tracks the two epidemics as coupled dynamical systems sharing a common population, and evaluates the relative effectiveness of condom promotion, increased TB case detection, TB preventive therapy, and antiretroviral therapy (ART). A key structural finding is that the coupling between the two epidemics makes it impossible to project TB trajectories accurately without simultaneously modeling the HIV epidemic: TB incidence is a function of HIV prevalence, which is itself dynamic.
+
+\citet{sharomi2008mathematical} provided a rigorous analytical treatment of HIV/TB co-dynamics, demonstrating that the TB-only sub-model exhibits backward bifurcation---meaning a stable disease-free equilibrium can coexist with a stable endemic equilibrium even when the reproduction number $R_0 < 1$. This has a practical implication for control: reducing $R_0$ below unity is necessary but may not be sufficient to eliminate TB in populations with HIV co-infection, because the co-infection dynamics sustain a second stable equilibrium that standard threshold arguments do not predict. The analysis also found that HIV-only treatment strategies (ART) averted more co-infection cases than TB-only strategies when resources were limited, highlighting the cross-disease benefit of ART.
+
+\subsection{Impact of antiretroviral therapy on TB dynamics}
+
+ART reduces TB risk in HIV-positive individuals by restoring immune function, but the magnitude of the population-level effect depends on coverage, the CD4 threshold for ART initiation, and the timing of scale-up relative to the maturity of the HIV epidemic. \citet{williams2003antiretroviral} used a compartmental model to show that initiating ART at 200 CD4$^+$ cells/$\mu$L with 90\% coverage would prevent no more than 20\% of HIV-associated TB cases, whereas initiation at 500 cells/$\mu$L could prevent 40--60\%. This result arises because much of the excess TB risk accumulates at moderate immunosuppression (CD4 200--500), a range that late-initiation strategies leave unprotected.
+
+\citet{pretorius2014potential} compared three independent TB--HIV transmission models for South Africa and found that expanding ART eligibility to all HIV-positive individuals was projected to reduce cumulative TB incidence by 6--30\% over 2014--2033, with an estimated one TB case averted for every 10--13 additional person-years of ART. The between-model variation in this estimate reflects structural uncertainty in how ART modifies infectiousness and in the assumed rate of immune reconstitution, underscoring the value of multi-model comparisons for policy-relevant projections.
+
+\subsection{Implications for model design}
+
+For models intended to describe settings with substantial HIV prevalence, ignoring the TB--HIV interaction leads to biased projections of both incidence trends and intervention impact. The minimum extension required is a two-stratum (HIV$-$/HIV$+$) replication of the TB compartmental structure with stratum-specific progression, mortality, and diagnostic parameters. More refined models add CD4-count strata, explicit ART compartments with time-on-treatment effects, and dynamic HIV transmission. The structural trade-off is the same as for other risk-factor stratified models (Section~\ref{sec:modeling_extensions}): additional strata improve biological realism at the cost of more parameters, and the appropriate level of complexity depends on the policy question and the data available for calibration. In low-HIV-burden settings, the interaction can be safely neglected or handled through an attributable-fraction adjustment without explicit HIV strata.
 
 \section{Economic evaluation approaches for TB}
 \label{sec:econ}
