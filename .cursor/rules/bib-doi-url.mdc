@@ -1,0 +1,38 @@
+---
+description: Every .bib entry must have a verified DOI with a matching url field; remove entries whose DOI cannot be verified
+globs: ["**/*.bib"]
+alwaysApply: false
+---
+
+# BibTeX DOI-as-URL rule
+
+## Rules
+
+1. Every entry in a `.bib` file that contains a `doi` field **must** also include a `url` field of the form:
+
+```
+url = {https://doi.org/<doi-value>}
+```
+
+If an entry already has a `url` pointing somewhere other than the DOI resolver, **add** the DOI-based URL (keep the existing `url` only if it provides genuinely different content, e.g. an open-access preprint). If both would point to the same resource, prefer the DOI-based URL.
+
+2. **Verify every DOI before writing it.** After adding or editing a `doi` field, fetch `https://doi.org/<doi-value>` (using the web fetch tool) to confirm it resolves to the expected publication. A DOI is verified when the fetched page matches the expected title/authors.
+
+3. **If a DOI cannot be verified** (fetch fails, returns a 404, or resolves to a different publication), **remove the entire `.bib` entry** and delete every `\cite` or `\citep` reference to it in the corresponding `.tex` files. Do not leave dead citations. Inform the user which entry was removed and why.
+
+## Rationale
+
+DOI-based URLs are persistent and resolvable. Including them as clickable `url` fields ensures that compiled PDFs (via `hyperref`) link directly to the publication. Verifying existence prevents fabricated or mistyped DOIs from entering the bibliography.
+
+## Example
+
+```bibtex
+@article{example2024,
+  author = {Doe, Jane},
+  title  = {An example article},
+  journal = {Journal of Examples},
+  year   = {2024},
+  doi    = {10.1234/example.2024},
+  url    = {https://doi.org/10.1234/example.2024}
+}
+```
