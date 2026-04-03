@@ -17,24 +17,32 @@ This is a self-directed learning project to build skills in TB epidemiology, mod
 ## Project structure
 
 ```
-2026 TB/
+learning_tb_modeling/
   tb_overview/
-    modeling_tb.tex                 # TB epidemiology, natural history, modeling approaches (LaTeX)
-    modeling_tb.pdf                 # compiled PDF
-    references.bib                  # BibTeX citations
-    tb_programs_stakeholders.tex    # TB programs, funding, modeling groups, stakeholders
+    modeling_tb.tex                   # TB epidemiology, natural history, modeling approaches (LaTeX)
+    modeling_tb.pdf                   # compiled PDF
+    references.bib                    # BibTeX citations
+    tb_programs_stakeholders.tex      # TB programs, funding, modeling groups, stakeholders
+    tb_programs_stakeholders.pdf      # compiled PDF
   tb_toy_model/
-    README.md                       # model description, setup, design decisions
+    README.md                         # model description, setup, design decisions
     src/
-      model.py                      # ODE system and solver wrapper
-      parameters.py                 # parameter dataclass with literature-sourced defaults
-      plotting.py                   # time series, incidence, and tornado plot helpers
+      __init__.py
+      model.py                        # ODE system and solver wrapper
+      parameters.py                   # parameter dataclass with literature-sourced defaults
+      plotting.py                     # time series, incidence, and tornado plot helpers
     notebooks/
-      01_tb_model.ipynb             # model spec, baseline simulation, R0, treatment scenarios
-      02_sensitivity_analysis.ipynb # parameter sweeps, tornado plots
+      01_tb_model.ipynb               # model spec, baseline simulation, R0, treatment scenarios
+      02_sensitivity_analysis.ipynb   # parameter sweeps, tornado plots
   ai_approach/
-    ai_approach.tex                 # documentation of AI agent use, skills, and prompts
-    ai_approach.pdf                 # compiled PDF
+    ai_approach.tex                   # documentation of AI agent use, skills, and prompts
+    ai_approach.pdf                   # compiled PDF
+  .cursor/
+    context/                          # shared context files for Cursor agent sessions
+    plans/                            # reusable Cursor plan templates
+    reports/                          # agent-generated reports
+    rules/                            # workspace-level rules for the AI agent
+    skills/                           # custom Cursor agent skills
 ```
 
 ---
