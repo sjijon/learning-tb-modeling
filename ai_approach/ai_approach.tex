@@ -25,7 +25,7 @@
 \title{AI-Assisted Project Development:\\
   Documenting the Use of AI Agents in the\\ TB Infectious Disease Modeling Project}
 \author{}
-\date{March 2026}
+\date{March--April 2026}
 
 \begin{document}
 \maketitle
@@ -495,6 +495,87 @@ Using AI agents to build this project from scratch revealed several patterns wor
 \end{itemize}
 
 % -----------------------------------------------------------------------
+\section{Reusable plan templates for other diseases}
+\label{sec:templates}
+% -----------------------------------------------------------------------
+
+After the TB project was complete, a follow-up conversation explored whether the project's structure could be extracted into reusable templates -- a set of Cursor plan files that someone could use to build an equivalent learning repo for a different infectious disease (e.g., malaria, HIV, cholera).
+
+\subsection{Motivation}
+
+The TB project was built through an interactive, conversational process. Reproducing it for another disease would require the user to know which prompts to give, in what order, and what to expect at each step. The goal was to reverse-engineer the process into a sequence of buildable plans that a new user could follow with minimal prior knowledge of Cursor.
+
+\subsection{Design iterations}
+
+The template structure went through several iterations, each prompted by a question about usability:
+
+\begin{enumerate}
+  \item \textbf{Single plan file.} The first attempt was a single \texttt{.plan.md} file containing all prompts grouped by phase. This had the right content but no mechanism for user input -- the user would need to manually replace \texttt{[DISEASE]} placeholders throughout.
+
+  \item \textbf{Adding user instructions.} A ``How to use this plan'' section was added, explaining Cursor concepts (Plan mode, Agent mode, Skills, Context files, Rules, the \texttt{@} symbol), a step-by-step workflow, conversation management guidance, and common failure modes.
+
+  \item \textbf{Adding a user input section.} A ``Your project choices'' section was added before the prompts, where the user fills in their disease, language (Python/R), modeling approach (deterministic ODE / stochastic / agent-based), and optional parameters. The prompts reference these choices via bracketed placeholders.
+
+  \item \textbf{Plan vs.\ plain Markdown.} Testing revealed that the Cursor ``Build'' button on \texttt{.plan.md} files cannot handle this workflow -- several steps require human review (confirming the plan, checking PDFs, running notebooks), and the agent cannot pause for user input mid-execution. The file was converted to a plain \texttt{.md} guide with copy-paste prompts.
+
+  \item \textbf{Multi-plan split.} The final iteration split the single file into five \texttt{.plan.md} files, one per phase. Each plan has its own ``Build'' button and a focused to-do list. A shared \texttt{project\_choices.md} file holds the user's disease and preferences, attached to each plan conversation via \texttt{@}. This gives the user buildable automation for the parts that can be automated, while naturally creating conversation boundaries at the points where human review is needed.
+\end{enumerate}
+
+\subsection{Prompts that produced the templates}
+
+\begin{longtable}{@{}p{6cm}p{7.3cm}@{}}
+\toprule
+Prompt & Effect \\
+\midrule
+\endfirsthead
+\toprule
+Prompt & Effect \\
+\midrule
+\endhead
+\textit{``write a plan in @plans that retrieves the prompts that would be needed to build a repo with this structure to learn about another infectious disease and build a toy model, as well as a literature review.''} & Agent read the full project structure (all context files, the original plan, the README, and this document), then wrote a single \texttt{.plan.md} with phased prompts, a disease adaptation table, and design notes. \\
+\textit{``how does a (new) user need to run this plan?''} & Triggered a usability analysis. Agent identified five gaps: assumed Cursor familiarity, circular skill bootstrapping, vague ``automatic from plan'' steps, no conversation management guidance, no expected-output checkpoints. \\
+\textit{``write these instructions in the plan''} & Agent added a ``How to use this plan'' section with prerequisites, Cursor concepts, step-by-step workflow, conversation management table, and troubleshooting. \\
+\textit{``where does the user write the disease they want to study? would creating a new section before P-0.1 where the user inputs their preferences?''} & Agent added a ``Your project choices'' section with fill-in tables for disease, language, modeling approach, and optional parameters. Updated all prompts to reference these choices. \\
+\textit{``would clicking Build make Cursor effectively build the plan, or does the user need to copy and paste all the prompts?''} & Agent explained that the Build button cannot automate this workflow due to required human review steps. Added to-do frontmatter and a section explaining the limitation. \\
+\textit{``let's keep it manual. should this be an .md instead of a plan?''} & Converted from \texttt{.plan.md} (with frontmatter and Build button) to plain \texttt{.md} (reference guide with copy-paste prompts). \\
+\textit{``can the plan be organized using multiple blocks for the todos?''} & Agent investigated Cursor's plan format (flat todo list only, no grouping). Proposed splitting into multiple \texttt{.plan.md} files, one per phase, with a shared \texttt{project\_choices.md}. \\
+\textit{``yes, let's try that''} & Agent created the final five-plan structure with a shared choices file and an index guide. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Final template structure}
+
+The templates live in a subfolder of \texttt{.cursor/plans/}:
+
+\begin{Verbatim}[fontsize=\small]
+.cursor/plans/plan_for_building_infectious_disease_model_learning_repo/
+  prompts_for_building_infectious_disease_modeling_learning_repo.md
+                                  % index/guide: prerequisites, Cursor concepts,
+                                  % workflow, troubleshooting, disease adaptation table
+  project_choices.md              % user fills in: disease, language, modeling approach,
+                                  % compartmental structure, time horizon, population size
+  00_project_setup.plan.md        % rule, skills, folder skeleton, .gitignore
+  01_literature_review.plan.md    % LaTeX lit review + references.bib + PDF
+  02_toy_model.plan.md            % src/ or R/ package + 2 notebooks + requirements.txt
+  03_documentation.plan.md        % READMEs, stakeholder doc (optional), context files
+  04_ai_approach.plan.md          % AI workflow documentation (optional)
+\end{Verbatim}
+
+\noindent A new user fills in \texttt{project\_choices.md}, then clicks ``Build'' on each plan in order (00 through 04), starting a new conversation for each. Step~00 is fully automated; the remaining steps require the user to stay in the conversation to review output, check PDFs, run notebooks, and verify cross-references.
+
+\subsection{Key design decisions}
+
+\begin{itemize}
+  \item \textbf{Shared choices file over repeated YAML.} Rather than embedding user preferences in each plan's frontmatter, a single \texttt{project\_choices.md} is attached via \texttt{@} to each conversation. This avoids duplication and ensures all plans read the same values.
+
+  \item \textbf{One conversation per plan.} Each plan is designed to run in a single, fresh conversation. This prevents context degradation from long conversations and creates natural review checkpoints between phases.
+
+  \item \textbf{Todos describe outcomes, not prompts.} The frontmatter to-dos say what to produce (``Write LaTeX literature review with TikZ flow diagram''), not what to type. The agent interprets these as tasks; the plan body provides the exact prompt wording as a fallback for manual use.
+
+  \item \textbf{Language and approach as first-class choices.} The templates support Python, R, or both, and deterministic ODE, stochastic, or agent-based models. The initial prompt (P-0.1) passes these choices to the agent, which adjusts the compartmental structure, solver, and notebook format accordingly.
+\end{itemize}
+
+% -----------------------------------------------------------------------
 \section{Estimated resource usage}
 % -----------------------------------------------------------------------
 
@@ -574,6 +655,14 @@ The project was built using a \textbf{Cursor Pro} subscription at \$20/month, wh
   .cursor/
     plans/
       tb_modeling_learning_project_1d0fe19d.plan.md
+      plan_for_building_infectious_disease_model_learning_repo/
+        prompts_for_building_infectious_disease_modeling_learning_repo.md
+        project_choices.md          % user inputs: disease, language, approach
+        00_project_setup.plan.md    % rule, skills, folder skeleton
+        01_literature_review.plan.md % LaTeX lit review + references
+        02_toy_model.plan.md        % model code + notebooks
+        03_documentation.plan.md    % READMEs, stakeholders, context files
+        04_ai_approach.plan.md      % AI workflow documentation
     skills/
       add-references/SKILL.md
       compile-tex-after-save/SKILL.md
