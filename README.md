@@ -62,3 +62,9 @@ In [`tb_overview/`](tb_overview/), [`tb_programs_stakeholders.tex`](tb_overview/
 
 This project was built using Cursor AI agents (Plan mode + Agent mode) and custom skills. The full account --prompts used, agents involved, organizational decisions, and observations-- is documented in [`ai_approach/ai_approach.pdf`](ai_approach/ai_approach.pdf).
 
+---
+
+## Replicating this project for another disease
+
+The prompts and structure used to build this TB project have been extracted into a set of reusable Cursor plan templates. To build an equivalent learning repo for a different infectious disease (e.g., malaria, HIV, cholera), see [`.cursor/plans/plan_for_building_infectious_disease_model_learning_repo/`](.cursor/plans/plan_for_building_infectious_disease_model_learning_repo/prompts_for_building_infectious_disease_modeling_learning_repo.md). Fill in your disease, language, and modeling approach in `project_choices.md`, then build each plan in order.
+
